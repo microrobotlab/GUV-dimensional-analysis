@@ -16,27 +16,6 @@ end
 
 diameter(area) = sqrt(area/π) 
 
-# Statistic significance of differences
-# ===
-# Structure to store test results
-struct SSD
-    FTest::VarianceFTest
-    tTest::TwoSampleTTest
-end
-
-# Function for testing the statistical significance of mean differences between diameters of samples (assuming LogNormal distribution)
-function StatSigDiffLN(dLN1::Vector{<:Real}, dLN2::Vector{<:Real}; p_Ftest::Float64=0.05)
-    # Transform to Normal
-    xN1, xN2 = log.(dLN1), log.(dLN2)
-    # Do Normal variables have equal variance? Fischer test
-    FTest = VarianceFTest(xN1,xN2)
-    # Execute t-test on Normal variables
-    tTest = (pvalue(FTest) < p_Ftest) ? UnequalVarianceTTest(xN1,xN2) : EqualVarianceTTest(xN1,xN2)
-    # Create and return results structure
-    ssd = SSD(FTest,tTest)
-    return ssd
-end;
-
 # Visualization
 # ===
 # Function for plotting histogram and fitted LogNormal distribution
@@ -63,4 +42,25 @@ function HistLNDist(diameters::Vector{<:Real}; d_step::Integer=5, label::String=
     PlotLNDist!(h, d, N, d_step=d_step, color=color)
     display(h)
     return d
+end;
+
+# Statistic significance of differences
+# ===
+# Structure to store test results
+struct SSD
+    FTest::VarianceFTest
+    tTest::TwoSampleTTest
+end
+
+# Function for testing the statistical significance of mean differences between diameters of samples (assuming LogNormal distribution)
+function StatSigDiffLN(dLN1::Vector{<:Real}, dLN2::Vector{<:Real}; p_Ftest::Float64=0.05)
+    # Transform to Normal
+    xN1, xN2 = log.(dLN1), log.(dLN2)
+    # Do Normal variables have equal variance? Fischer test
+    FTest = VarianceFTest(xN1,xN2)
+    # Execute t-test on Normal variables
+    tTest = (pvalue(FTest) < p_Ftest) ? UnequalVarianceTTest(xN1,xN2) : EqualVarianceTTest(xN1,xN2)
+    # Create and return results structure
+    ssd = SSD(FTest,tTest)
+    return ssd
 end;
